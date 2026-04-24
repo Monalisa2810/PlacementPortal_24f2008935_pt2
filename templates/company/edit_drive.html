@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Edit Drive — Placement Portal{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1><i class="bi bi-pencil me-2"></i>Edit Placement Drive</h1>
+    <p>Update the details for: <strong>{{ drive.job_title }}</strong></p>
+  </div>
+</div>
+<div class="container pb-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card p-4">
+        <form method="POST" action="/company/edit_drive/{{ drive.id }}">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Job Title *</label>
+              <input type="text" name="job_title" class="form-control" required value="{{ drive.job_title }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Job Description *</label>
+              <textarea name="description" class="form-control" rows="5" required>{{ drive.description }}</textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Eligibility Criteria *</label>
+              <input type="text" name="eligibility" class="form-control" required value="{{ drive.eligibility }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Application Deadline *</label>
+              <input type="date" name="deadline" class="form-control" required value="{{ drive.deadline }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Package / CTC</label>
+              <input type="text" name="package" class="form-control" value="{{ drive.package or '' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Job Location</label>
+              <input type="text" name="location" class="form-control" value="{{ drive.location or '' }}">
+            </div>
+            <div class="col-12 mt-2">
+              <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-save me-2"></i>Save Changes
+              </button>
+              <a href="/company/dashboard" class="btn btn-secondary ms-2">Cancel</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

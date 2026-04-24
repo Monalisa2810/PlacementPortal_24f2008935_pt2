@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — Placement Portal{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1><i class="bi bi-speedometer2 me-2"></i>Admin Dashboard</h1>
+    <p>Placement Cell &mdash; Full System Overview</p>
+  </div>
+</div>
+<div class="container pb-4">
+  <!-- Stat Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="stat-card s-students">
+        <div class="stat-icon"><i class="bi bi-mortarboard-fill"></i></div>
+        <div class="stat-number">{{ students|length }}</div>
+        <div class="stat-label">Total Students</div>
+        <a href="/admin/students" class="stat-action">View All</a>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card s-companies">
+        <div class="stat-icon"><i class="bi bi-building-fill"></i></div>
+        <div class="stat-number">{{ companies|length }}</div>
+        <div class="stat-label">Total Companies</div>
+        <a href="/admin/companies" class="stat-action">View All</a>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card s-drives">
+        <div class="stat-icon"><i class="bi bi-briefcase-fill"></i></div>
+        <div class="stat-number">{{ drives|length }}</div>
+        <div class="stat-label">Placement Drives</div>
+        <a href="/admin/drives" class="stat-action">View All</a>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card s-apps">
+        <div class="stat-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
+        <div class="stat-number">{{ applications|length }}</div>
+        <div class="stat-label">Total Applications</div>
+        <a href="/admin/applications" class="stat-action">View All</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Pending Companies -->
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-building me-2 text-warning"></i>Pending Company Approvals</span>
+          {% set pending_co = companies|selectattr('approved','equalto',False)|list %}
+          <span class="badge b-pending">{{ pending_co|length }} pending</span>
+        </div>
+        <div class="card-body p-0">
+          {% set pending_co = companies|selectattr('approved','equalto',False)|list %}
+          {% if pending_co %}
+          <div class="table-responsive">
+          <table class="table mb-0">
+            <thead><tr><th>Company</th><th>HR Contact</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for c in pending_co %}
+            <tr>
+              <td><strong>{{ c.name }}</strong></td>
+              <td class="text-muted small">{{ c.hr_contact }}</td>
+              <td>
+                <a href="/admin/approve_company/{{ c.id }}" class="btn btn-success btn-sm"><i class="bi bi-check-lg"></i> Approve</a>
+                <a href="/admin/reject_company/{{ c.id }}"  class="btn btn-danger btn-sm"
+                   onclick="return confirm('Delete company {{ c.name }}?')"><i class="bi bi-x-lg"></i> Reject</a>
+              </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          </div>
+          {% else %}
+          <div class="empty-state"><div class="ei"><i class="bi bi-check-circle"></i></div><h6>All caught up!</h6><p class="small">No pending company approvals.</p></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending Drives -->
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-briefcase me-2 text-info"></i>Pending Drive Approvals</span>
+          {% set pending_dr = drives|selectattr('approved','equalto',False)|list %}
+          <span class="badge b-pending">{{ pending_dr|length }} pending</span>
+        </div>
+        <div class="card-body p-0">
+          {% set pending_dr = drives|selectattr('approved','equalto',False)|list %}
+          {% if pending_dr %}
+          <div class="table-responsive">
+          <table class="table mb-0">
+            <thead><tr><th>Job Title</th><th>Company</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for d in pending_dr %}
+            <tr>
+              <td><strong>{{ d.job_title }}</strong></td>
+              <td class="text-muted small">{{ d.company.name if d.company else '—' }}</td>
+              <td>
+                <a href="/admin/approve_drive/{{ d.id }}" class="btn btn-success btn-sm"><i class="bi bi-check-lg"></i> Approve</a>
+                <a href="/admin/reject_drive/{{ d.id }}"  class="btn btn-danger btn-sm"
+                   onclick="return confirm('Delete this drive?')"><i class="bi bi-x-lg"></i> Reject</a>
+              </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          </div>
+          {% else %}
+          <div class="empty-state"><div class="ei"><i class="bi bi-check-circle"></i></div><h6>All caught up!</h6><p class="small">No pending drive approvals.</p></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Applications -->
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header"><i class="bi bi-clock-history me-2"></i>Recent Applications</div>
+        <div class="card-body p-0">
+          {% if applications %}
+          <div class="table-responsive">
+          <table class="table mb-0">
+            <thead><tr><th>Student</th><th>Drive</th><th>Company</th><th>Status</th><th>Date Applied</th></tr></thead>
+            <tbody>
+            {% for app in applications[-10:]|reverse %}
+            <tr>
+              <td><strong>{{ app.student.name if app.student else 'N/A' }}</strong></td>
+              <td>{{ app.drive.job_title if app.drive else 'N/A' }}</td>
+              <td class="text-muted small">{{ app.drive.company.name if app.drive and app.drive.company else '—' }}</td>
+              <td>
+                {% if app.status == 'Selected' %}<span class="badge b-selected">{{ app.status }}</span>
+                {% elif app.status == 'Shortlisted' %}<span class="badge b-shortlist">{{ app.status }}</span>
+                {% elif app.status == 'Rejected' %}<span class="badge b-rejected">{{ app.status }}</span>
+                {% else %}<span class="badge b-applied">{{ app.status }}</span>{% endif %}
+              </td>
+              <td class="text-muted small">{{ app.applied_at.strftime('%d %b %Y') if app.applied_at else '—' }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          </div>
+          {% else %}
+          <div class="empty-state"><div class="ei"><i class="bi bi-inbox"></i></div><h6>No applications yet.</h6></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Placement Drives — Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1><i class="bi bi-briefcase me-2"></i>All Placement Drives</h1>
+    <p>Approve or reject company-submitted drives</p>
+  </div>
+</div>
+<div class="container pb-4">
+  <div class="table-wrap">
+    <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr><th>ID</th><th>Job Title</th><th>Company</th><th>Package</th><th>Deadline</th><th>Approval</th><th>State</th><th>Applicants</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for d in drives %}
+        <tr>
+          <td><code class="mono">{{ d.id }}</code></td>
+          <td><strong>{{ d.job_title }}</strong></td>
+          <td class="text-muted small">{{ d.company.name if d.company else '—' }}</td>
+          <td class="text-muted small">{{ d.package or '—' }}</td>
+          <td class="text-muted small">{{ d.deadline }}</td>
+          <td>
+            {% if d.approved %}<span class="badge b-approved">Approved</span>
+            {% else %}<span class="badge b-pending">Pending</span>{% endif %}
+          </td>
+          <td>
+            {% if d.closed %}<span class="badge b-closed">Closed</span>
+            {% else %}<span class="badge b-approved">Open</span>{% endif %}
+          </td>
+          <td><span class="mono">{{ d.applications|length }}</span></td>
+          <td>
+            {% if not d.approved %}
+            <a href="/admin/approve_drive/{{ d.id }}" class="btn btn-success btn-sm"><i class="bi bi-check-lg"></i> Approve</a>
+            <a href="/admin/reject_drive/{{ d.id }}"  class="btn btn-danger btn-sm"
+               onclick="return confirm('Delete this drive?')"><i class="bi bi-x-lg"></i> Reject</a>
+            {% else %}
+            <span class="text-muted small">Approved</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="text-center py-4 text-muted">No drives found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+  <div class="mt-3"><a href="/admin/dashboard" class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Dashboard</a></div>
+</div>
+{% endblock %}

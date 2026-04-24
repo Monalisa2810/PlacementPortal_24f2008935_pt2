@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Applicants — {{ drive.job_title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1><i class="bi bi-people me-2"></i>Applicants for {{ drive.job_title }}</h1>
+    <p>Review and update the status of each applicant</p>
+  </div>
+</div>
+<div class="container pb-4">
+  {% if items %}
+  <div class="table-wrap">
+    <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Branch</th><th>CGPA</th><th>Resume</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td><code class="mono">{{ item.student.id }}</code></td>
+          <td><strong>{{ item.student.name }}</strong></td>
+          <td class="text-muted small">{{ item.student.email }}</td>
+          <td class="text-muted small">{{ item.student.phone }}</td>
+          <td>{{ item.student.branch or '—' }}</td>
+          <td>{{ item.student.cgpa or '—' }}</td>
+          <td>
+            {% if item.student.resume_filename %}
+            <span class="badge b-approved"><i class="bi bi-file-earmark-check me-1"></i>Uploaded</span>
+            {% else %}
+            <span class="text-muted small">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if item.application.status == 'Selected' %}<span class="badge b-selected">Selected</span>
+            {% elif item.application.status == 'Shortlisted' %}<span class="badge b-shortlist">Shortlisted</span>
+            {% elif item.application.status == 'Rejected' %}<span class="badge b-rejected">Rejected</span>
+            {% else %}<span class="badge b-applied">Applied</span>{% endif %}
+          </td>
+          <td>
+            <a href="/company/update_status/{{ item.application.id }}/Shortlisted" class="btn btn-warning btn-sm">
+              <i class="bi bi-star"></i> Shortlist
+            </a>
+            <a href="/company/update_status/{{ item.application.id }}/Selected" class="btn btn-success btn-sm">
+              <i class="bi bi-check-lg"></i> Select
+            </a>
+            <a href="/company/update_status/{{ item.application.id }}/Rejected" class="btn btn-danger btn-sm">
+              <i class="bi bi-x-lg"></i> Reject
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state card">
+    <div class="ei"><i class="bi bi-inbox"></i></div>
+    <h6>No Applicants Yet</h6>
+    <p class="small">No students have applied to this drive yet.</p>
+  </div>
+  {% endif %}
+  <div class="mt-3">
+    <a href="/company/dashboard" class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Dashboard</a>
+  </div>
+</div>
+{% endblock %}

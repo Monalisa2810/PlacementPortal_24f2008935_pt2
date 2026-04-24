@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Company Profile — Placement Portal{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1><i class="bi bi-building me-2"></i>Company Profile</h1>
+    <p>Manage your company information</p>
+  </div>
+</div>
+<div class="container pb-4">
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <div class="card p-4 text-center">
+        <div class="avatar-circle mx-auto mb-3" style="font-size:1.4rem;">{{ company.name[0].upper() }}</div>
+        <h5 class="fw-bold">{{ company.name }}</h5>
+        <p class="text-muted small">{{ company.hr_contact }}</p>
+        {% if company.approved %}
+        <span class="badge b-approved mb-2"><i class="bi bi-check-circle me-1"></i>Approved</span>
+        {% else %}
+        <span class="badge b-pending mb-2"><i class="bi bi-hourglass-split me-1"></i>Pending Approval</span>
+        {% endif %}
+        {% if company.website %}
+        <div class="mt-2">
+          <a href="{{ company.website }}" target="_blank" class="text-muted small">{{ company.website }}</a>
+        </div>
+        {% endif %}
+        {% if company.description %}
+        <hr>
+        <p class="text-muted small text-start">{{ company.description }}</p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-lg-8">
+      <div class="card p-4">
+        {% if success %}<div class="alert alert-success"><i class="bi bi-check-circle me-2"></i>{{ success }}</div>{% endif %}
+        <h6 class="section-title">Update Company Info</h6>
+        <form method="POST" action="/company/profile">
+          <div class="mb-3">
+            <label class="form-label">HR Contact</label>
+            <input type="text" name="hr_contact" class="form-control" value="{{ company.hr_contact }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Website</label>
+            <input type="url" name="website" class="form-control" value="{{ company.website or '' }}" placeholder="https://...">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Company Description</label>
+            <textarea name="description" class="form-control" rows="4">{{ company.description or '' }}</textarea>
+          </div>
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-save me-2"></i>Save Changes
+          </button>
+          <a href="/company/dashboard" class="btn btn-secondary ms-2">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

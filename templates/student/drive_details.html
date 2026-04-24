@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}{{ drive.job_title }} — Drive Details{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1><i class="bi bi-briefcase me-2"></i>{{ drive.job_title }}</h1>
+    <p>{{ drive.company.name if drive.company else 'Company' }} &mdash; Placement Drive Details</p>
+  </div>
+</div>
+<div class="container pb-4">
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card p-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-file-text me-2 text-muted"></i>Job Description</h5>
+        <p style="line-height:1.8;">{{ drive.description }}</p>
+        <hr>
+        <div class="row g-3 mt-1">
+          <div class="col-md-6">
+            <div class="text-muted small fw-bold text-uppercase mb-1">Eligibility</div>
+            <div>{{ drive.eligibility }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="text-muted small fw-bold text-uppercase mb-1">Package / CTC</div>
+            <div>{{ drive.package or 'Not specified' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="text-muted small fw-bold text-uppercase mb-1">Location</div>
+            <div>{{ drive.location or 'Not specified' }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="text-muted small fw-bold text-uppercase mb-1">Application Deadline</div>
+            <div class="fw-bold text-danger">{{ drive.deadline }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card p-4">
+        <h6 class="fw-bold mb-3">Company Info</h6>
+        {% if drive.company %}
+        <div class="mb-2"><span class="text-muted small">Name:</span><br><strong>{{ drive.company.name }}</strong></div>
+        <div class="mb-2"><span class="text-muted small">HR Contact:</span><br>{{ drive.company.hr_contact }}</div>
+        {% if drive.company.website %}
+        <div class="mb-3"><span class="text-muted small">Website:</span><br>
+          <a href="{{ drive.company.website }}" target="_blank">{{ drive.company.website }}</a>
+        </div>
+        {% endif %}
+        {% endif %}
+        <hr>
+        {% if already_applied %}
+        <div class="alert alert-success py-2 small mb-3"><i class="bi bi-check-circle me-1"></i>You have already applied!</div>
+        <button class="btn btn-secondary w-100" disabled>Already Applied</button>
+        {% elif drive.closed %}
+        <div class="alert alert-warning py-2 small mb-3"><i class="bi bi-x-circle me-1"></i>This drive is closed.</div>
+        <button class="btn btn-secondary w-100" disabled>Drive Closed</button>
+        {% else %}
+        <a href="/student/apply/{{ drive.id }}" class="btn btn-success w-100 py-2">
+          <i class="bi bi-send-fill me-2"></i>Apply Now
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="mt-3">
+    <a href="/student/dashboard" class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Dashboard</a>
+  </div>
+</div>
+{% endblock %}

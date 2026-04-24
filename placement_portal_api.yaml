@@ -1,0 +1,797 @@
+openapi: 3.0.3
+info:
+  title: Placement Portal API
+  version: 1.0.0
+  description: >
+    REST-style API layer for the Placement Portal — Campus Recruitment Management System
+    built with Flask. Endpoints are protected by session-based authentication and expose
+    resources related to students, companies, placement drives, and applications.
+
+servers:
+  - url: http://127.0.0.1:5000
+    description: Local development server
+
+tags:
+  - name: Students
+    description: Student profile and data endpoints
+  - name: Companies
+    description: Company profile and management endpoints
+  - name: Drives
+    description: Placement drive (job posting) endpoints
+  - name: Applications
+    description: Student application and status management
+  - name: Admin
+    description: Admin-only approval and management endpoints
+  - name: Search
+    description: Search endpoints for students and companies
+
+paths:
+
+  # ── STUDENTS ──────────────────────────────────────────────────────────────
+
+  /api/students:
+    get:
+      tags: [Students]
+      summary: Get all students
+      description: Returns a list of all registered students. Admin access only.
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: List of students
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Student'
+        '401':
+          description: Not authenticated
+        '403':
+          description: Admin access required
+
+  /api/students/{id}:
+    get:
+      tags: [Students]
+      summary: Get student by ID
+      description: Returns profile details for a specific student.
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Student ID
+      responses:
+        '200':
+          description: Student profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+        '401':
+          description: Not authenticated
+        '403':
+          description: Admin access required
+        '404':
+          description: Student not found
+
+  /api/student/history:
+    get:
+      tags: [Students]
+      summary: Get application history for logged-in student
+      description: >
+        Returns all applications (with drive and company details) submitted
+        by the currently logged-in student.
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Application history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApplicationWithDrive'
+        '401':
+          description: Not authenticated
+        '403':
+          description: Student access required
+
+  # ── COMPANIES ─────────────────────────────────────────────────────────────
+
+  /api/companies:
+    get:
+      tags: [Companies]
+      summary: Get all companies
+      description: Returns a list of all registered companies. Admin access only.
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: List of companies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Company'
+        '401':
+          description: Not authenticated
+        '403':
+          description: Admin access required
+
+  /api/companies/{id}:
+    get:
+      tags: [Companies]
+      summary: Get company by ID
+      description: Returns profile details for a specific company.
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Company ID
+      responses:
+        '200':
+          description: Company profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '401':
+          description: Not authenticated
+        '404':
+          description: Company not found
+
+  # ── DRIVES ────────────────────────────────────────────────────────────────
+
+  /api/drives:
+    get:
+      tags: [Drives]
+      summary: Get all approved placement drives
+      description: >
+        Returns all placement drives that are approved and open.
+        Students see this list to browse and apply.
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: List of placement drives
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Drive'
+        '401':
+          description: Not authenticated
+
+    post:
+      tags: [Drives]
+      summary: Create a new placement drive
+      description: >
+        Creates a new placement drive for the logged-in company. The company
+        must be approved by admin before creating drives. The drive starts as
+        pending and requires admin approval before students can view it.
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriveInput'
+      responses:
+        '201':
+          description: Drive created (pending approval)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Drive'
+        '400':
+          description: Invalid input
+        '401':
+          description: Not authenticated
+        '403':
+          description: Company not approved or not a company account
+
+  /api/drives/{id}:
+    get:
+      tags: [Drives]
+      summary: Get drive details by ID
+      description: Returns full details of a specific placement drive including company info.
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Drive ID
+      responses:
+        '200':
+          description: Drive details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Drive'
+        '401':
+          description: Not authenticated
+        '404':
+          description: Drive not found
+
+    patch:
+      tags: [Drives]
+      summary: Edit or close a placement drive
+      description: >
+        Updates drive details or closes the drive. Only the owning company
+        can update their own drives.
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Drive ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriveUpdate'
+      responses:
+        '200':
+          description: Drive updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Drive'
+        '401':
+          description: Not authenticated
+        '403':
+          description: Not authorised to update this drive
+        '404':
+          description: Drive not found
+
+    delete:
+      tags: [Drives]
+      summary: Delete a placement drive
+      description: >
+        Permanently deletes a drive and all associated applications.
+        Only the owning company can delete their drives.
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Drive ID
+      responses:
+        '200':
+          description: Drive deleted successfully
+        '401':
+          description: Not authenticated
+        '403':
+          description: Not authorised to delete this drive
+        '404':
+          description: Drive not found
+
+  # ── APPLICATIONS ──────────────────────────────────────────────────────────
+
+  /api/applications:
+    get:
+      tags: [Applications]
+      summary: Get applications for logged-in user
+      description: >
+        Returns applications relevant to the current user. Students receive
+        their own applications; companies receive applications for their drives.
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: List of applications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Application'
+        '401':
+          description: Not authenticated
+
+    post:
+      tags: [Applications]
+      summary: Submit a new application
+      description: >
+        Creates a new application for the logged-in student to a given drive.
+        Duplicate applications to the same drive are prevented server-side.
+        The drive must be approved and open.
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [drive_id]
+              properties:
+                drive_id:
+                  type: integer
+                  example: 5
+      responses:
+        '201':
+          description: Application submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        '400':
+          description: Already applied or drive not available
+        '401':
+          description: Not authenticated
+        '403':
+          description: Student access required
+
+  /api/applications/{id}:
+    patch:
+      tags: [Applications]
+      summary: Update application status
+      description: >
+        Updates the status of an application. Used by companies to shortlist,
+        select, or reject a candidate. Ownership of the relevant drive is
+        verified before the update is applied.
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Application ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [Applied, Shortlisted, Selected, Rejected]
+                  example: Shortlisted
+      responses:
+        '200':
+          description: Application status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        '400':
+          description: Invalid status value
+        '401':
+          description: Not authenticated
+        '403':
+          description: Not authorised to update this application
+        '404':
+          description: Application not found
+
+  # ── ADMIN ─────────────────────────────────────────────────────────────────
+
+  /api/admin/approve/company/{id}:
+    post:
+      tags: [Admin]
+      summary: Approve a company registration
+      description: Admin approves a pending company, allowing them to log in and create drives.
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Company ID
+      responses:
+        '200':
+          description: Company approved
+        '401':
+          description: Not authenticated
+        '403':
+          description: Admin access required
+        '404':
+          description: Company not found
+
+  /api/admin/reject/company/{id}:
+    delete:
+      tags: [Admin]
+      summary: Reject and delete a company registration
+      description: Admin rejects a pending company, permanently deleting the record.
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Company ID
+      responses:
+        '200':
+          description: Company rejected and deleted
+        '401':
+          description: Not authenticated
+        '403':
+          description: Admin access required
+        '404':
+          description: Company not found
+
+  /api/admin/approve/drive/{id}:
+    post:
+      tags: [Admin]
+      summary: Approve a placement drive
+      description: Admin approves a pending drive, making it visible to students.
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Drive ID
+      responses:
+        '200':
+          description: Drive approved
+        '401':
+          description: Not authenticated
+        '403':
+          description: Admin access required
+        '404':
+          description: Drive not found
+
+  /api/admin/reject/drive/{id}:
+    delete:
+      tags: [Admin]
+      summary: Reject and delete a placement drive
+      description: Admin rejects a pending drive, permanently deleting the record.
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Drive ID
+      responses:
+        '200':
+          description: Drive rejected and deleted
+        '401':
+          description: Not authenticated
+        '403':
+          description: Admin access required
+        '404':
+          description: Drive not found
+
+  /api/admin/blacklist/student/{id}:
+    post:
+      tags: [Admin]
+      summary: Toggle student blacklist status
+      description: Admin toggles the blacklisted flag on a student account.
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Student ID
+      responses:
+        '200':
+          description: Blacklist status toggled
+        '401':
+          description: Not authenticated
+        '403':
+          description: Admin access required
+        '404':
+          description: Student not found
+
+  /api/admin/blacklist/company/{id}:
+    post:
+      tags: [Admin]
+      summary: Toggle company blacklist status
+      description: Admin toggles the blacklisted flag on a company account.
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Company ID
+      responses:
+        '200':
+          description: Blacklist status toggled
+        '401':
+          description: Not authenticated
+        '403':
+          description: Admin access required
+        '404':
+          description: Company not found
+
+  # ── SEARCH ────────────────────────────────────────────────────────────────
+
+  /api/search/student:
+    get:
+      tags: [Search]
+      summary: Search students
+      description: >
+        Search students by name, email, phone, or ID. Admin access only.
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+          description: Search term (name, email, phone, or numeric ID)
+      responses:
+        '200':
+          description: Matching students
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Student'
+        '401':
+          description: Not authenticated
+        '403':
+          description: Admin access required
+
+  /api/search/company:
+    get:
+      tags: [Search]
+      summary: Search companies
+      description: Search companies by name. Admin access only.
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+          description: Search term (company name)
+      responses:
+        '200':
+          description: Matching companies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Company'
+        '401':
+          description: Not authenticated
+        '403':
+          description: Admin access required
+
+# ── COMPONENTS ────────────────────────────────────────────────────────────────
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: session
+      description: >
+        Session-based authentication using Flask sessions. The browser must send
+        a valid session cookie. Role is determined from session keys:
+        session['admin'], session['student'], or session['company'].
+
+  schemas:
+
+    Student:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Ravi Kumar
+        email:
+          type: string
+          example: ravi.kumar@college.edu
+        phone:
+          type: string
+          example: "9876543210"
+        branch:
+          type: string
+          example: CSE
+        cgpa:
+          type: number
+          format: float
+          example: 8.75
+        graduation_year:
+          type: integer
+          example: 2025
+        resume_filename:
+          type: string
+          nullable: true
+          example: resume_1_ravi_cv.pdf
+        blacklisted:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+
+    Company:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 3
+        name:
+          type: string
+          example: Infosys
+        hr_contact:
+          type: string
+          example: hr@infosys.com
+        website:
+          type: string
+          example: https://www.infosys.com
+        description:
+          type: string
+          example: Global technology services company
+        approved:
+          type: boolean
+          example: true
+        blacklisted:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+
+    Drive:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 5
+        company_id:
+          type: integer
+          example: 3
+        company:
+          $ref: '#/components/schemas/Company'
+        job_title:
+          type: string
+          example: Software Engineer
+        description:
+          type: string
+          example: Build scalable backend services using Python and Flask
+        eligibility:
+          type: string
+          example: CGPA >= 7.0, CSE / IT branch only
+        deadline:
+          type: string
+          format: date
+          example: "2025-05-31"
+        package:
+          type: string
+          example: 12 LPA
+        location:
+          type: string
+          example: Bangalore
+        approved:
+          type: boolean
+          example: true
+        closed:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+
+    DriveInput:
+      type: object
+      required: [job_title, description, eligibility, deadline]
+      properties:
+        job_title:
+          type: string
+          example: Data Analyst
+        description:
+          type: string
+          example: Analyse business data and build dashboards
+        eligibility:
+          type: string
+          example: CGPA >= 6.5, any branch
+        deadline:
+          type: string
+          format: date
+          example: "2025-06-15"
+        package:
+          type: string
+          example: 8 LPA
+        location:
+          type: string
+          example: Hyderabad
+
+    DriveUpdate:
+      type: object
+      properties:
+        job_title:
+          type: string
+        description:
+          type: string
+        eligibility:
+          type: string
+        deadline:
+          type: string
+          format: date
+        package:
+          type: string
+        location:
+          type: string
+        closed:
+          type: boolean
+          description: Set to true to close the drive and stop new applications
+
+    Application:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 12
+        student_id:
+          type: integer
+          example: 1
+        drive_id:
+          type: integer
+          example: 5
+        status:
+          type: string
+          enum: [Applied, Shortlisted, Selected, Rejected]
+          example: Shortlisted
+        applied_at:
+          type: string
+          format: date-time
+
+    ApplicationWithDrive:
+      allOf:
+        - $ref: '#/components/schemas/Application'
+        - type: object
+          properties:
+            drive:
+              $ref: '#/components/schemas/Drive'
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Not authorised
+        message:
+          type: string
+          example: You do not have permission to access this resource

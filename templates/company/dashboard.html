@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Company Dashboard — Placement Portal{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1><i class="bi bi-building me-2"></i>{{ company.name }}</h1>
+    <p>HR Contact: {{ company.hr_contact }} &nbsp;|&nbsp;
+       {% if company.website %}<a href="{{ company.website }}" target="_blank" class="text-white-50">{{ company.website }}</a>{% endif %}
+    </p>
+  </div>
+</div>
+<div class="container pb-4">
+
+  {% if error %}
+  <div class="alert alert-danger mb-3"><i class="bi bi-exclamation-circle me-2"></i>{{ error }}</div>
+  {% endif %}
+
+  {% if not company.approved %}
+  <div class="alert alert-warning">
+    <i class="bi bi-hourglass-split me-2"></i>
+    <strong>Pending Approval:</strong> Your company is awaiting admin approval. You cannot create drives until approved.
+  </div>
+  {% endif %}
+
+  <!-- Summary Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card p-3 text-center">
+        <div class="stat-number text-primary" style="font-size:2rem;">{{ drives|length }}</div>
+        <div class="text-muted small">Total Drives Created</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3 text-center">
+        <div class="stat-number text-success" style="font-size:2rem;">{{ drives|selectattr('approved','equalto',True)|list|length }}</div>
+        <div class="text-muted small">Approved Drives</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3 text-center">
+        <div class="stat-number text-info" style="font-size:2rem;">{{ drive_counts.values()|sum }}</div>
+        <div class="text-muted small">Total Applicants</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <span class="section-title">My Placement Drives</span>
+    {% if company.approved %}
+    <a href="/company/create_drive" class="btn btn-success">
+      <i class="bi bi-plus-circle me-2"></i>Create New Drive
+    </a>
+    {% endif %}
+  </div>
+
+  {% if drives %}
+  <div class="table-wrap">
+    <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr><th>ID</th><th>Job Title</th><th>Package</th><th>Deadline</th><th>Approval</th><th>State</th><th>Applicants</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for drive in drives %}
+        <tr>
+          <td><code class="mono">{{ drive.id }}</code></td>
+          <td><strong>{{ drive.job_title }}</strong></td>
+          <td class="text-muted small">{{ drive.package or '—' }}</td>
+          <td class="text-muted small">{{ drive.deadline }}</td>
+          <td>
+            {% if drive.approved %}<span class="badge b-approved">Approved</span>
+            {% else %}<span class="badge b-pending">Pending</span>{% endif %}
+          </td>
+          <td>
+            {% if drive.closed %}<span class="badge b-closed">Closed</span>
+            {% else %}<span class="badge b-approved">Open</span>{% endif %}
+          </td>
+          <td><strong class="mono">{{ drive_counts.get(drive.id, 0) }}</strong></td>
+          <td>
+            <a href="/company/applications/{{ drive.id }}" class="btn btn-primary btn-sm">
+              <i class="bi bi-people"></i> Applicants
+            </a>
+            {% if not drive.closed %}
+            <a href="/company/edit_drive/{{ drive.id }}" class="btn btn-info btn-sm">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <a href="/company/close_drive/{{ drive.id }}" class="btn btn-warning btn-sm"
+               onclick="return confirm('Close this drive? Students will no longer be able to apply.')">
+              <i class="bi bi-lock"></i>
+            </a>
+            {% endif %}
+            <a href="/company/delete_drive/{{ drive.id }}" class="btn btn-danger btn-sm"
+               onclick="return confirm('Permanently delete this drive and all its applications?')">
+              <i class="bi bi-trash"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state card">
+    <div class="ei"><i class="bi bi-briefcase"></i></div>
+    <h6>No Drives Yet</h6>
+    <p class="small">You haven't created any placement drives yet.</p>
+    {% if company.approved %}
+    <a href="/company/create_drive" class="btn btn-success mt-2"><i class="bi bi-plus-circle me-2"></i>Create First Drive</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

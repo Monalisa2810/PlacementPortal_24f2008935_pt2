@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Students — Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1><i class="bi bi-mortarboard me-2"></i>Registered Students</h1>
+    <p>Search, manage and blacklist student accounts</p>
+  </div>
+</div>
+<div class="container pb-4">
+  <form class="search-form" method="GET" action="/admin/students">
+    <input type="text" name="q" class="form-control" placeholder="Search by name, email, phone or ID..." value="{{ q or '' }}">
+    <button type="submit" class="btn btn-primary px-4"><i class="bi bi-search"></i> Search</button>
+    {% if q %}<a href="/admin/students" class="btn btn-secondary">Clear</a>{% endif %}
+  </form>
+
+  <div class="table-wrap">
+    <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Branch</th><th>CGPA</th><th>Grad Year</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+        <tr>
+          <td><code class="mono">{{ s.id }}</code></td>
+          <td><strong>{{ s.name }}</strong></td>
+          <td class="text-muted small">{{ s.email }}</td>
+          <td class="text-muted small">{{ s.phone }}</td>
+          <td>{{ s.branch or '—' }}</td>
+          <td>{{ s.cgpa or '—' }}</td>
+          <td>{{ s.graduation_year or '—' }}</td>
+          <td>
+            {% if s.blacklisted %}<span class="badge b-blacklist">Blacklisted</span>
+            {% else %}<span class="badge b-approved">Active</span>{% endif %}
+          </td>
+          <td>
+            <a href="/admin/blacklist_student/{{ s.id }}" class="btn btn-warning btn-sm"
+               onclick="return confirm('Toggle blacklist status for {{ s.name }}?')">
+              {% if s.blacklisted %}<i class="bi bi-unlock-fill"></i> Unblock{% else %}<i class="bi bi-ban"></i> Blacklist{% endif %}
+            </a>
+            <a href="/admin/delete_student/{{ s.id }}" class="btn btn-danger btn-sm"
+               onclick="return confirm('Permanently delete {{ s.name }} and all their applications?')">
+              <i class="bi bi-trash-fill"></i>
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="text-center py-4 text-muted">No students found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+  <div class="mt-3"><a href="/admin/dashboard" class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Dashboard</a></div>
+</div>
+{% endblock %}

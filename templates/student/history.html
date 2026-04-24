@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Application History — Placement Portal{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1><i class="bi bi-clock-history me-2"></i>Application History</h1>
+    <p>All placement applications for {{ student.name }}</p>
+  </div>
+</div>
+<div class="container pb-4">
+  {% if applications %}
+  <div class="table-wrap">
+    <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr><th>App ID</th><th>Job Title</th><th>Company</th><th>Package</th><th>Date Applied</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for app in applications %}
+        <tr>
+          <td><code class="mono">{{ app.id }}</code></td>
+          <td><strong>{{ app.drive.job_title if app.drive else 'N/A' }}</strong></td>
+          <td class="text-muted small">{{ app.drive.company.name if app.drive and app.drive.company else '—' }}</td>
+          <td class="text-muted small">{{ app.drive.package if app.drive and app.drive.package else '—' }}</td>
+          <td class="text-muted small">{{ app.applied_at.strftime('%d %b %Y') if app.applied_at else '—' }}</td>
+          <td>
+            {% if app.status == 'Selected' %}<span class="badge b-selected">&#10003; Selected</span>
+            {% elif app.status == 'Shortlisted' %}<span class="badge b-shortlist">&#9733; Shortlisted</span>
+            {% elif app.status == 'Rejected' %}<span class="badge b-rejected">&#10007; Rejected</span>
+            {% else %}<span class="badge b-applied">Applied</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state card">
+    <div class="ei"><i class="bi bi-inbox"></i></div>
+    <h6>No Applications Yet</h6>
+    <p class="small">You haven't applied to any placement drives yet.</p>
+    <a href="/student/dashboard" class="btn btn-primary mt-2">Browse Drives</a>
+  </div>
+  {% endif %}
+  <div class="mt-3">
+    <a href="/student/dashboard" class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Dashboard</a>
+  </div>
+</div>
+{% endblock %}

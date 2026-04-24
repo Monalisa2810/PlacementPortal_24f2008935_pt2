@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Create Drive — Placement Portal{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1><i class="bi bi-plus-circle me-2"></i>Create Placement Drive</h1>
+    <p>Post a new job opening for students to apply</p>
+  </div>
+</div>
+<div class="container pb-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card p-4">
+        <form method="POST" action="/company/create_drive">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Job Title *</label>
+              <input type="text" name="job_title" class="form-control" required placeholder="e.g. Software Engineer, Data Analyst">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Job Description *</label>
+              <textarea name="description" class="form-control" rows="5" required placeholder="Describe the role, responsibilities, tech stack, etc."></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Eligibility Criteria *</label>
+              <input type="text" name="eligibility" class="form-control" required placeholder="e.g. CGPA >= 7.0, CSE/IT only">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Application Deadline *</label>
+              <input type="date" name="deadline" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Package / CTC</label>
+              <input type="text" name="package" class="form-control" placeholder="e.g. 8 LPA, 60,000/month">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Job Location</label>
+              <input type="text" name="location" class="form-control" placeholder="e.g. Bangalore, Remote">
+            </div>
+            <div class="col-12 mt-2">
+              <button type="submit" class="btn btn-success px-4">
+                <i class="bi bi-send me-2"></i>Submit Drive for Approval
+              </button>
+              <a href="/company/dashboard" class="btn btn-secondary ms-2">Cancel</a>
+            </div>
+          </div>
+        </form>
+        <div class="alert alert-info mt-3 small">
+          <i class="bi bi-info-circle me-1"></i>Your drive will be visible to students only after admin approval.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

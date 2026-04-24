@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Companies — Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1><i class="bi bi-building me-2"></i>Registered Companies</h1>
+    <p>Approve, reject or blacklist company accounts</p>
+  </div>
+</div>
+<div class="container pb-4">
+  <form class="search-form" method="GET" action="/admin/companies">
+    <input type="text" name="q" class="form-control" placeholder="Search by company name..." value="{{ q or '' }}">
+    <button type="submit" class="btn btn-primary px-4"><i class="bi bi-search"></i> Search</button>
+    {% if q %}<a href="/admin/companies" class="btn btn-secondary">Clear</a>{% endif %}
+  </form>
+
+  <div class="table-wrap">
+    <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr><th>ID</th><th>Company</th><th>HR Contact</th><th>Website</th><th>Approval</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for c in companies %}
+        <tr>
+          <td><code class="mono">{{ c.id }}</code></td>
+          <td><strong>{{ c.name }}</strong></td>
+          <td class="text-muted small">{{ c.hr_contact }}</td>
+          <td>
+            {% if c.website %}
+            <a href="{{ c.website }}" target="_blank" class="text-muted small">
+              {{ c.website[:35] }}{% if c.website|length > 35 %}...{% endif %}
+            </a>
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if c.approved %}<span class="badge b-approved">Approved</span>
+            {% else %}<span class="badge b-pending">Pending</span>{% endif %}
+          </td>
+          <td>
+            {% if c.blacklisted %}<span class="badge b-blacklist">Blacklisted</span>
+            {% else %}<span class="badge b-approved">Active</span>{% endif %}
+          </td>
+          <td>
+            {% if not c.approved %}
+            <a href="/admin/approve_company/{{ c.id }}" class="btn btn-success btn-sm"><i class="bi bi-check-lg"></i> Approve</a>
+            <a href="/admin/reject_company/{{ c.id }}"  class="btn btn-danger btn-sm"
+               onclick="return confirm('Delete company {{ c.name }}?')"><i class="bi bi-x-lg"></i> Reject</a>
+            {% endif %}
+            <a href="/admin/blacklist_company/{{ c.id }}" class="btn btn-warning btn-sm"
+               onclick="return confirm('Toggle blacklist for {{ c.name }}?')">
+              {% if c.blacklisted %}<i class="bi bi-unlock-fill"></i> Unblock{% else %}<i class="bi bi-ban"></i> Blacklist{% endif %}
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center py-4 text-muted">No companies found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+  <div class="mt-3"><a href="/admin/dashboard" class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Dashboard</a></div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard — Placement Portal{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1><i class="bi bi-grid me-2"></i>Student Dashboard</h1>
+    <p>Welcome back, <strong>{{ student.name }}</strong> &mdash; {{ student.branch or 'Student' }}</p>
+  </div>
+</div>
+<div class="container pb-4">
+
+  <!-- My Active Applications Summary -->
+  {% if my_apps %}
+  <div class="mb-4">
+    <div class="section-title">My Applications</div>
+    <div class="row g-3">
+      {% for app in my_apps %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card p-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="text-muted small mb-1">{{ app.drive.company.name if app.drive and app.drive.company else '—' }}</div>
+              <strong>{{ app.drive.job_title if app.drive else 'Unknown Drive' }}</strong>
+            </div>
+            {% if app.status == 'Selected' %}<span class="badge b-selected">Selected</span>
+            {% elif app.status == 'Shortlisted' %}<span class="badge b-shortlist">Shortlisted</span>
+            {% elif app.status == 'Rejected' %}<span class="badge b-rejected">Rejected</span>
+            {% else %}<span class="badge b-applied">Applied</span>{% endif %}
+          </div>
+          <div class="text-muted small mt-2">
+            <i class="bi bi-calendar3 me-1"></i>Deadline: {{ app.drive.deadline if app.drive else '—' }}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Available Drives -->
+  <div class="section-title">Available Placement Drives</div>
+  {% if drives %}
+  <div class="row g-3">
+    {% for drive in drives %}
+    <div class="col-md-6 col-lg-4">
+      <div class="drive-card">
+        {% if drive.id in applied_ids %}
+        <span class="applied-ribbon"><i class="bi bi-check-lg me-1"></i>Applied</span>
+        {% endif %}
+        <div class="co-tag"><i class="bi bi-building me-1"></i>{{ drive.company.name if drive.company else 'Company #' ~ drive.company_id }}</div>
+        <h5>{{ drive.job_title }}</h5>
+        <div class="meta"><i class="bi bi-cash"></i> {{ drive.package or 'Package not specified' }}</div>
+        <div class="meta"><i class="bi bi-geo-alt"></i> {{ drive.location or 'Location not specified' }}</div>
+        <div class="meta"><i class="bi bi-award"></i> {{ drive.eligibility }}</div>
+        <div class="meta"><i class="bi bi-calendar-x"></i> Deadline: <strong>{{ drive.deadline }}</strong></div>
+        <div class="d-flex gap-2 mt-3">
+          <a href="/student/drive/{{ drive.id }}" class="btn btn-outline-primary btn-sm flex-grow-1">
+            <i class="bi bi-eye me-1"></i>View Details
+          </a>
+          {% if drive.id not in applied_ids %}
+          <a href="/student/apply/{{ drive.id }}" class="btn btn-success btn-sm flex-grow-1">
+            <i class="bi bi-send me-1"></i>Apply
+          </a>
+          {% else %}
+          <button class="btn btn-secondary btn-sm flex-grow-1" disabled>
+            <i class="bi bi-check me-1"></i>Applied
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state card">
+    <div class="ei"><i class="bi bi-briefcase"></i></div>
+    <h6>No Drives Available</h6>
+    <p class="small">No approved placement drives right now. Check back soon!</p>
+  </div>
+  {% endif %}
+
+  <div class="mt-4">
+    <a href="/student/history" class="btn btn-info"><i class="bi bi-clock-history me-2"></i>Full Application History</a>
+  </div>
+</div>
+{% endblock %}
