@@ -13,6 +13,15 @@ app.config.from_object(Config)
 
 db.init_app(app)
 
+with app.app_context():
+    db.create_all()
+    from models import Admin
+    from werkzeug.security import generate_password_hash
+    if not Admin.query.filter_by(username="admin").first():
+        admin = Admin(username="admin", password=generate_password_hash("admin123"))
+        db.session.add(admin)
+        db.session.commit()
+
 app.register_blueprint(auth_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(student_bp)
