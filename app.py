@@ -21,6 +21,7 @@ with app.app_context():
         admin = Admin(username="admin", password=generate_password_hash("admin123"))
         db.session.add(admin)
         db.session.commit()
+        print("✅ Admin created → username: admin | password: admin123")
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(admin_bp)
