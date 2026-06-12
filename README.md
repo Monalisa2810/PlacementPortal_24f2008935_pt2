@@ -91,5 +91,6 @@ placement_portal/
         ├── create_drive.html
         ├── edit_drive.html
         ├── applications.html
+        ├── new.html
         └── profile.html
 ```
