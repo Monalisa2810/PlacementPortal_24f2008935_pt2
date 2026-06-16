@@ -12,7 +12,7 @@ Visit: http://127.0.0.1:5000
 ## Default Admin Login
 - **Username:** admin
 - **Password:** admin123
-- Select "Admin" tab on the login page
+- Select "Admin" tab on the login page and then proceed
 
 ## Role Logins
 | Role    | Identifier   | Login Tab |
